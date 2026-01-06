@@ -435,38 +435,100 @@ struct MenuBarView: View {
 
     private var footerSection: some View {
         HStack {
-            Button(action: {
-                openWindow(id: "main")
-                NSApp.activate(ignoringOtherApps: true)
-            }) {
-                HStack(spacing: 5) {
-                    Image(systemName: "macwindow")
-                        .font(.system(size: 10, weight: .medium))
-                    Text("Open Window")
-                        .font(.system(size: 11, weight: .medium))
+            PremiumFooterButton(
+                icon: "macwindow",
+                label: "Open Window",
+                action: {
+                    openWindow(id: "main")
+                    NSApp.activate(ignoringOtherApps: true)
                 }
-                .foregroundColor(.primary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color.primary.opacity(0.06))
-                .cornerRadius(6)
-            }
-            .buttonStyle(.plain)
+            )
 
             Spacer()
 
-            Button("Quit") {
-                NSApp.terminate(nil)
-            }
-            .font(.system(size: 11, weight: .medium))
-            .foregroundColor(.secondary)
-            .buttonStyle(.plain)
+            PremiumQuitButton()
         }
     }
+}
 
-    // MARK: - Helpers
+// MARK: - Premium Footer Button
 
-    private func formatGB(_ mb: Double) -> String {
+struct PremiumFooterButton: View {
+    let icon: String
+    let label: String
+    let action: () -> Void
+
+    @State private var isHovered = false
+    @State private var isPressed = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 10, weight: .semibold))
+                Text(label)
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+            }
+            .foregroundColor(isHovered ? Color(hex: "007AFF") : .primary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 7)
+                        .fill(isHovered ? Color(hex: "007AFF").opacity(0.1) : Color.primary.opacity(0.06))
+
+                    RoundedRectangle(cornerRadius: 7)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    isHovered ? Color(hex: "007AFF").opacity(0.3) : Color.white.opacity(0.1),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 1
+                        )
+                }
+            )
+            .scaleEffect(isPressed ? 0.96 : (isHovered ? 1.02 : 1.0))
+            .shadow(color: isHovered ? Color(hex: "007AFF").opacity(0.2) : Color.clear, radius: 6, y: 2)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
+        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isHovered)
+        .animation(.spring(response: 0.15, dampingFraction: 0.6), value: isPressed)
+    }
+}
+
+// MARK: - Premium Quit Button
+
+struct PremiumQuitButton: View {
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: { NSApp.terminate(nil) }) {
+            Text("Quit")
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundColor(isHovered ? .red : .secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .animation(.easeInOut(duration: 0.15), value: isHovered)
+    }
+}
+
+// MARK: - Helpers (Extension)
+
+private extension MenuBarView {
+    func formatGB(_ mb: Double) -> String {
         if mb >= 1024 {
             return String(format: "%.1f GB", mb / 1024)
         }
@@ -685,47 +747,100 @@ struct ProcessRow: View {
         case "Cursor": return Color(hex: "007ACC")
         case "Electron": return Color(hex: "47848F")
         case "VS Code": return Color(hex: "007ACC")
+        case "Finder": return Color(hex: "4DB6F3")
+        case "Terminal": return Color(hex: "2D3436")
         default: return .secondary
         }
     }
 
     var body: some View {
         HStack(spacing: 10) {
-            // Icon
-            Image(systemName: group.icon)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(iconColor)
-                .frame(width: 22, height: 22)
-                .background(iconColor.opacity(0.12))
-                .cornerRadius(5)
+            // Premium icon with glow
+            ZStack {
+                if isHovered {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(iconColor.opacity(0.15))
+                        .frame(width: 26, height: 26)
+                        .blur(radius: 3)
+                }
 
-            // Name
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(
+                        LinearGradient(
+                            colors: [iconColor.opacity(0.18), iconColor.opacity(0.08)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 24, height: 24)
+
+                RoundedRectangle(cornerRadius: 5)
+                    .strokeBorder(iconColor.opacity(isHovered ? 0.35 : 0.15), lineWidth: 1)
+                    .frame(width: 24, height: 24)
+
+                Image(systemName: group.icon)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(iconColor)
+            }
+            .scaleEffect(isHovered ? 1.08 : 1.0)
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isHovered)
+
+            // Name with highlight
             Text(group.name)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 12, weight: isHovered ? .semibold : .medium, design: .rounded))
+                .foregroundColor(isHovered ? iconColor : .primary)
                 .lineLimit(1)
+                .animation(.easeInOut(duration: 0.15), value: isHovered)
 
             // Process count badge
             if group.processCount > 1 {
                 Text("×\(group.processCount)")
-                    .font(.system(size: 9, weight: .semibold, design: .rounded))
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 5)
+                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .foregroundColor(isHovered ? .white.opacity(0.9) : .secondary)
+                    .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.secondary.opacity(0.1))
-                    .cornerRadius(4)
+                    .background(
+                        Capsule()
+                            .fill(isHovered ? iconColor.opacity(0.8) : Color.secondary.opacity(0.1))
+                    )
+                    .animation(.easeInOut(duration: 0.15), value: isHovered)
             }
 
             Spacer()
 
-            // Memory value
-            Text(formatMemory(group.totalMemoryMB))
-                .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                .foregroundColor(group.totalMemoryMB > 1500 ? Color(hex: "FF9500") : .secondary)
+            // Memory with visual indicator
+            HStack(spacing: 6) {
+                // Mini memory bar
+                if isHovered {
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .fill(memoryColor(group.totalMemoryMB))
+                        .frame(width: min(30, CGFloat(group.totalMemoryMB / 100)), height: 4)
+                        .transition(.scale.combined(with: .opacity))
+                }
+
+                Text(formatMemory(group.totalMemoryMB))
+                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .foregroundColor(memoryColor(group.totalMemoryMB))
+            }
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isHovered)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 7)
-        .background(isHovered ? Color.primary.opacity(0.05) : Color.clear)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(isHovered ? iconColor.opacity(0.06) : Color.clear)
+                .padding(.horizontal, 12)
+        )
+        .scaleEffect(isHovered ? 1.01 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isHovered)
         .onHover { onHover($0) }
+    }
+
+    private func memoryColor(_ mb: Double) -> Color {
+        if mb > 2000 { return Color(hex: "FF3B30") }
+        if mb > 1500 { return Color(hex: "FF9500") }
+        if mb > 800 { return Color(hex: "FFD60A") }
+        return .secondary
     }
 
     private func formatMemory(_ mb: Double) -> String {

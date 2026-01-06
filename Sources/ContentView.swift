@@ -283,6 +283,214 @@ struct PremiumDivider: View {
     }
 }
 
+// MARK: - Premium Skeleton Loading (Shimmer Effect)
+
+struct SkeletonLoader: View {
+    var width: CGFloat
+    var height: CGFloat = 16
+    var cornerRadius: CGFloat = 4
+
+    @State private var shimmerOffset: CGFloat = -1.0
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius)
+            .fill(Color.primary.opacity(0.06))
+            .frame(width: width, height: height)
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.clear,
+                                Color.white.opacity(0.15),
+                                Color.clear
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .offset(x: shimmerOffset * width)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    shimmerOffset = 2.0
+                }
+            }
+    }
+}
+
+// MARK: - Premium Loading Indicator
+
+struct PremiumLoadingIndicator: View {
+    @State private var rotation: Double = 0
+    @State private var pulseScale: CGFloat = 1.0
+
+    var body: some View {
+        ZStack {
+            // Outer pulsing ring
+            Circle()
+                .stroke(Color(hex: "007AFF").opacity(0.2), lineWidth: 3)
+                .frame(width: 48, height: 48)
+                .scaleEffect(pulseScale)
+
+            // Inner spinning arc
+            Circle()
+                .trim(from: 0, to: 0.7)
+                .stroke(
+                    AngularGradient(
+                        colors: [Color(hex: "007AFF").opacity(0.1), Color(hex: "007AFF")],
+                        center: .center
+                    ),
+                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                )
+                .frame(width: 40, height: 40)
+                .rotationEffect(.degrees(rotation))
+
+            // Center icon
+            Image(systemName: "memorychip")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Color(hex: "007AFF"))
+        }
+        .onAppear {
+            withAnimation(.linear(duration: 1.0).repeatForever(autoreverses: false)) {
+                rotation = 360
+            }
+            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                pulseScale = 1.15
+            }
+        }
+    }
+}
+
+// MARK: - Premium Empty State
+
+struct PremiumEmptyState: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let actionTitle: String?
+    let action: (() -> Void)?
+
+    @State private var iconBounce: CGFloat = 0
+    @State private var iconOpacity: Double = 0.5
+    @State private var showContent = false
+
+    var body: some View {
+        VStack(spacing: 20) {
+            // Animated icon
+            ZStack {
+                Circle()
+                    .fill(Color.secondary.opacity(0.08))
+                    .frame(width: 80, height: 80)
+
+                Circle()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.secondary.opacity(0.15), Color.secondary.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+                    .frame(width: 80, height: 80)
+
+                Image(systemName: icon)
+                    .font(.system(size: 32, weight: .light))
+                    .foregroundColor(.secondary.opacity(iconOpacity))
+                    .offset(y: iconBounce)
+            }
+            .onAppear {
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                    iconBounce = -6
+                    iconOpacity = 0.7
+                }
+            }
+
+            VStack(spacing: 8) {
+                Text(title)
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .foregroundColor(.primary.opacity(0.85))
+
+                Text(subtitle)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+            }
+            .opacity(showContent ? 1 : 0)
+            .offset(y: showContent ? 0 : 10)
+
+            if let actionTitle = actionTitle, let action = action {
+                Button(action: action) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(actionTitle)
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "007AFF"), Color(hex: "5856D6")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(10)
+                    .shadow(color: Color(hex: "007AFF").opacity(0.3), radius: 8, y: 4)
+                }
+                .buttonStyle(PremiumButtonStyle())
+                .opacity(showContent ? 1 : 0)
+                .offset(y: showContent ? 0 : 10)
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
+                showContent = true
+            }
+        }
+    }
+}
+
+// MARK: - Premium Button Style (Press Feedback)
+
+struct PremiumButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .brightness(configuration.isPressed ? -0.05 : 0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Staggered Animation Modifier
+
+struct StaggeredAnimation: ViewModifier {
+    let index: Int
+    let baseDelay: Double
+    @State private var isVisible = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(isVisible ? 1 : 0)
+            .offset(y: isVisible ? 0 : 15)
+            .onAppear {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(baseDelay + Double(index) * 0.05)) {
+                    isVisible = true
+                }
+            }
+    }
+}
+
+extension View {
+    func staggeredAnimation(index: Int, baseDelay: Double = 0) -> some View {
+        modifier(StaggeredAnimation(index: index, baseDelay: baseDelay))
+    }
+}
+
 // MARK: - Window Draggable Area
 
 struct WindowDraggableArea: NSViewRepresentable {
@@ -317,6 +525,12 @@ struct ContentView: View {
     @State private var optimizeResult: CleanupResult? = nil
     @FocusState private var isSearchFocused: Bool
 
+    // Entrance animation states
+    @State private var showHeader = false
+    @State private var showDashboard = false
+    @State private var showRecommendations = false
+    @State private var showProcessList = false
+
     enum ViewMode: String, CaseIterable {
         case grouped = "Grouped"
         case all = "All Processes"
@@ -343,29 +557,37 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header with entrance animation
             headerSection
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
                 .padding(.bottom, 16)
+                .opacity(showHeader ? 1 : 0)
+                .offset(y: showHeader ? 0 : -20)
 
-            // Memory Dashboard
+            // Memory Dashboard with entrance animation
             memoryDashboard
                 .padding(.horizontal, 24)
                 .padding(.bottom, 20)
+                .opacity(showDashboard ? 1 : 0)
+                .offset(y: showDashboard ? 0 : 15)
 
-            // Recommendations (if needed)
+            // Recommendations (if needed) with entrance animation
             if let stats = monitor.memoryStats, stats.usedPercent > 70 {
                 recommendationsSection
                     .padding(.horizontal, 24)
                     .padding(.bottom, 16)
+                    .opacity(showRecommendations ? 1 : 0)
+                    .offset(y: showRecommendations ? 0 : 10)
             }
 
-            Divider()
-                .opacity(0.5)
+            PremiumDivider(opacity: 0.08)
+                .opacity(showProcessList ? 1 : 0)
 
-            // Process List
+            // Process List with entrance animation
             processListSection
+                .opacity(showProcessList ? 1 : 0)
+                .offset(y: showProcessList ? 0 : 10)
         }
         .frame(minWidth: 800, minHeight: 750)
         .background(VisualEffectBackground())
@@ -391,6 +613,21 @@ struct ContentView: View {
         .focusable()
         .focused($isSearchFocused)
         .onAppear {
+            // Staggered entrance animations
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                showHeader = true
+            }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1)) {
+                showDashboard = true
+            }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2)) {
+                showRecommendations = true
+            }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.25)) {
+                showProcessList = true
+            }
+
+            // Keyboard shortcuts
             NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 if event.modifierFlags.contains(.command) {
                     switch event.charactersIgnoringModifiers {
@@ -783,39 +1020,44 @@ struct ContentView: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     if monitor.isRefreshing && monitor.processGroups.isEmpty {
-                        // Loading state
-                        VStack(spacing: 16) {
-                            ProgressView()
-                                .scaleEffect(1.2)
-                            Text("Loading processes...")
-                                .font(.system(size: 14, weight: .medium))
+                        // Premium loading state with skeleton
+                        VStack(spacing: 24) {
+                            PremiumLoadingIndicator()
+
+                            Text("Analyzing memory usage...")
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
                                 .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 60)
-                    } else if monitor.processGroups.isEmpty {
-                        // Empty state
-                        VStack(spacing: 16) {
-                            Image(systemName: "memorychip")
-                                .font(.system(size: 48))
-                                .foregroundColor(.secondary.opacity(0.5))
-                            Text("No processes loaded")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.secondary)
-                            Text("System may be under heavy pressure.\nTry clicking Refresh or use Optimize Memory above.")
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary.opacity(0.7))
-                                .multilineTextAlignment(.center)
-                            Button(action: { monitor.refresh() }) {
-                                Label("Refresh", systemImage: "arrow.clockwise")
-                                    .font(.system(size: 13, weight: .medium))
+
+                            // Skeleton rows
+                            VStack(spacing: 8) {
+                                ForEach(0..<4, id: \.self) { index in
+                                    HStack(spacing: 12) {
+                                        SkeletonLoader(width: 24, height: 24, cornerRadius: 6)
+                                        SkeletonLoader(width: 120, height: 14)
+                                        Spacer()
+                                        SkeletonLoader(width: 60, height: 14)
+                                    }
+                                    .padding(.horizontal, 24)
+                                    .padding(.vertical, 8)
+                                    .staggeredAnimation(index: index, baseDelay: 0.3)
+                                }
                             }
-                            .buttonStyle(.borderedProminent)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 60)
+                        .padding(.vertical, 40)
+                    } else if monitor.processGroups.isEmpty {
+                        // Premium empty state
+                        PremiumEmptyState(
+                            icon: "memorychip",
+                            title: "No Processes Loaded",
+                            subtitle: "System may be under heavy pressure.\nTry refreshing or use Optimize Memory above.",
+                            actionTitle: "Refresh",
+                            action: { monitor.refresh() }
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 50)
                     } else if viewMode == .grouped {
-                        ForEach(filteredGroups) { group in
+                        ForEach(Array(filteredGroups.enumerated()), id: \.element.id) { index, group in
                             PremiumProcessGroupRow(
                                 group: group,
                                 isExpanded: expandedGroups.contains(group.id),
@@ -829,12 +1071,14 @@ struct ContentView: View {
                                     showAlert = killed > 0
                                 }
                             )
+                            .staggeredAnimation(index: index, baseDelay: 0.1)
                         }
                     } else {
-                        ForEach(filteredProcesses) { process in
+                        ForEach(Array(filteredProcesses.enumerated()), id: \.element.id) { index, process in
                             PremiumProcessRow(process: process) {
                                 monitor.killProcess(process.id)
                             }
+                            .staggeredAnimation(index: index, baseDelay: 0.05)
                         }
                     }
                 }
@@ -1370,45 +1614,113 @@ struct RecommendationCard: View {
     let action: (() -> Void)?
 
     @State private var isHovered = false
+    @State private var isPressed = false
 
     var body: some View {
         Button(action: { action?() }) {
             HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(color)
-                    .frame(width: 32, height: 32)
-                    .background(color.opacity(0.15))
-                    .cornerRadius(8)
+                // Premium icon with gradient background
+                ZStack {
+                    // Icon glow
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(color.opacity(isHovered ? 0.25 : 0.15))
+                        .blur(radius: isHovered ? 4 : 0)
 
-                VStack(alignment: .leading, spacing: 2) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                colors: [color.opacity(0.2), color.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 36, height: 36)
+
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [color.opacity(0.4), color.opacity(0.1)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 1
+                        )
+                        .frame(width: 36, height: 36)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(color)
+                        .scaleEffect(isHovered ? 1.1 : 1.0)
+                }
+                .frame(width: 36, height: 36)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isHovered)
+
+                VStack(alignment: .leading, spacing: 3) {
                     Text(title)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .foregroundColor(.primary)
 
                     Text(description)
-                        .font(.system(size: 10))
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundColor(.secondary)
+                        .lineLimit(1)
                 }
+
+                Spacer(minLength: 0)
 
                 if action != nil {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(color.opacity(isHovered ? 1 : 0.5))
+                        .offset(x: isHovered ? 2 : 0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
                 }
             }
-            .padding(12)
+            .padding(14)
             .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(isHovered ? color.opacity(0.1) : Color.clear)
+                ZStack {
+                    // Base
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(NSColor.controlBackgroundColor).opacity(isHovered ? 0.9 : 0.7))
+
+                    // Top edge highlight
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(isHovered ? 0.2 : 0.1),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 1
+                        )
+
+                    // Colored accent on left edge
+                    HStack {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(color)
+                            .frame(width: 3)
+                            .opacity(isHovered ? 1 : 0.5)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .strokeBorder(color.opacity(0.3), lineWidth: 1)
-            )
+            .shadow(color: color.opacity(isHovered ? 0.15 : 0.05), radius: isHovered ? 12 : 6, y: isHovered ? 6 : 3)
+            .scaleEffect(isPressed ? 0.97 : (isHovered ? 1.01 : 1.0))
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isHovered)
+            .animation(.spring(response: 0.15, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
         .disabled(action == nil)
     }
 }
@@ -1424,6 +1736,8 @@ struct PremiumProcessGroupRow: View {
     let onKillProcess: (Int32) -> Void
     let onKillGroup: () -> Void
 
+    @State private var killButtonHovered = false
+
     var groupColor: Color {
         switch group.name {
         case "Claude": return .orange
@@ -1431,6 +1745,10 @@ struct PremiumProcessGroupRow: View {
         case "Safari": return Color(hex: "007AFF")
         case "Xcode": return Color(hex: "147EFB")
         case "Docker": return Color(hex: "2496ED")
+        case "VS Code", "Cursor": return Color(hex: "007ACC")
+        case "Electron": return Color(hex: "47848F")
+        case "Finder": return Color(hex: "4DB6F3")
+        case "Terminal": return Color(hex: "2D3436")
         default: return .secondary
         }
     }
@@ -1440,91 +1758,169 @@ struct PremiumProcessGroupRow: View {
             // Group Header
             Button(action: onToggle) {
                 HStack(spacing: 12) {
-                    // Expand indicator
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.secondary)
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .frame(width: 16)
+                    // Premium expand indicator with rotation
+                    ZStack {
+                        Circle()
+                            .fill(isExpanded ? groupColor.opacity(0.12) : Color.clear)
+                            .frame(width: 20, height: 20)
 
-                    // App icon
-                    Image(systemName: group.icon)
-                        .font(.system(size: 14))
-                        .foregroundColor(groupColor)
-                        .frame(width: 24, height: 24)
-                        .background(groupColor.opacity(0.15))
-                        .cornerRadius(6)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(isExpanded ? groupColor : .secondary)
+                            .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                    }
+                    .frame(width: 20)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isExpanded)
 
-                    // Name and count
+                    // Premium app icon with glow
+                    ZStack {
+                        // Glow on hover
+                        if isHovered {
+                            RoundedRectangle(cornerRadius: 7)
+                                .fill(groupColor.opacity(0.2))
+                                .frame(width: 28, height: 28)
+                                .blur(radius: 4)
+                        }
+
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                LinearGradient(
+                                    colors: [groupColor.opacity(0.2), groupColor.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 26, height: 26)
+
+                        RoundedRectangle(cornerRadius: 6)
+                            .strokeBorder(groupColor.opacity(isHovered ? 0.4 : 0.2), lineWidth: 1)
+                            .frame(width: 26, height: 26)
+
+                        Image(systemName: group.icon)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(groupColor)
+                    }
+                    .scaleEffect(isHovered ? 1.05 : 1.0)
+                    .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isHovered)
+
+                    // Name with highlight on hover
                     Text(group.name)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 13, weight: isHovered ? .semibold : .medium, design: .rounded))
+                        .foregroundColor(isHovered ? groupColor : .primary)
+                        .animation(.easeInOut(duration: 0.15), value: isHovered)
 
+                    // Process count badge
                     Text("\(group.processCount)")
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.12))
-                        .cornerRadius(4)
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundColor(isHovered ? .white : .secondary)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill(isHovered ? groupColor : Color.secondary.opacity(0.12))
+                        )
+                        .animation(.easeInOut(duration: 0.15), value: isHovered)
 
                     Spacer()
 
-                    // Memory
+                    // Memory with gradient when high
                     Text(formatMemory(group.totalMemoryMB))
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundColor(group.totalMemoryMB > 1000 ? .orange : .primary)
+                        .foregroundStyle(
+                            group.totalMemoryMB > 2000
+                                ? AnyShapeStyle(LinearGradient(colors: [Color(hex: "FF3B30"), Color(hex: "FF6B6B")], startPoint: .leading, endPoint: .trailing))
+                                : group.totalMemoryMB > 1000
+                                    ? AnyShapeStyle(Color(hex: "FF9500"))
+                                    : AnyShapeStyle(Color.primary)
+                        )
                         .frame(width: 80, alignment: .trailing)
 
-                    // CPU
+                    // CPU with visual indicator
                     if group.totalCPU > 1 {
-                        Text(String(format: "%.1f%%", group.totalCPU))
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(.secondary)
-                            .frame(width: 50, alignment: .trailing)
+                        HStack(spacing: 4) {
+                            // Mini CPU bar
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(cpuColor(group.totalCPU))
+                                .frame(width: min(20, CGFloat(group.totalCPU) / 5), height: 4)
+
+                            Text(String(format: "%.1f%%", group.totalCPU))
+                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .foregroundColor(cpuColor(group.totalCPU))
+                        }
+                        .frame(width: 60, alignment: .trailing)
                     } else {
-                        Text("")
-                            .frame(width: 50)
+                        Text("—")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary.opacity(0.3))
+                            .frame(width: 60, alignment: .trailing)
                     }
 
-                    // Kill button
+                    // Premium kill button
                     if group.processCount > 1 {
                         Button(action: onKillGroup) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(.red.opacity(0.6))
+                            ZStack {
+                                Circle()
+                                    .fill(killButtonHovered ? Color.red.opacity(0.15) : Color.clear)
+                                    .frame(width: 26, height: 26)
+
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(killButtonHovered ? .red : .red.opacity(0.4))
+                                    .scaleEffect(killButtonHovered ? 1.1 : 1.0)
+                            }
                         }
                         .buttonStyle(.plain)
+                        .onHover { killButtonHovered = $0 }
                         .help("Kill all except main process")
-                        .frame(width: 24)
+                        .frame(width: 28)
+                        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: killButtonHovered)
                     } else {
-                        Spacer().frame(width: 24)
+                        Spacer().frame(width: 28)
                     }
                 }
                 .padding(.horizontal, 24)
-                .padding(.vertical, 10)
-                .background(isHovered || isExpanded ? Color.secondary.opacity(0.05) : Color.clear)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHovered || isExpanded ? groupColor.opacity(0.04) : Color.clear)
+                        .padding(.horizontal, 12)
+                )
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .onHover { onHover($0) }
 
-            // Expanded content
+            // Expanded content with staggered animation
             if isExpanded {
                 VStack(spacing: 0) {
-                    ForEach(group.processes) { process in
+                    ForEach(Array(group.processes.enumerated()), id: \.element.id) { index, process in
                         PremiumProcessRow(process: process) {
                             onKillProcess(process.id)
                         }
-                        .padding(.leading, 52)
+                        .padding(.leading, 56)
+                        .staggeredAnimation(index: index, baseDelay: 0)
                     }
                 }
-                .background(Color.secondary.opacity(0.02))
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(groupColor.opacity(0.02))
+                        .padding(.horizontal, 16)
+                )
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .top)),
+                    removal: .opacity
+                ))
             }
 
-            Divider()
-                .padding(.leading, isExpanded ? 24 : 60)
-                .opacity(0.5)
+            PremiumDivider(opacity: 0.06, horizontal: isExpanded ? 24 : 60)
         }
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isExpanded)
+    }
+
+    private func cpuColor(_ cpu: Double) -> Color {
+        if cpu > 100 { return Color(hex: "FF3B30") }
+        if cpu > 50 { return Color(hex: "FF9500") }
+        return .secondary
     }
 
     private func formatMemory(_ mb: Double) -> String {
@@ -1542,80 +1938,8 @@ struct PremiumProcessRow: View {
     let onKill: () -> Void
 
     @State private var isHovered = false
-    @State private var showKill = false
-    @State private var animatedMemory: Double = 0
-
-    var body: some View {
-        HStack(spacing: 12) {
-            // Process name with subtle background
-            Text(process.displayName)
-                .font(.system(size: 12, weight: .medium))
-                .lineLimit(1)
-
-            // PID badge
-            Text("PID \(process.id)")
-                .font(.system(size: 9, weight: .medium, design: .monospaced))
-                .foregroundColor(.secondary.opacity(isHovered ? 0.8 : 0.6))
-                .padding(.horizontal, 5)
-                .padding(.vertical, 2)
-                .background(Color.secondary.opacity(isHovered ? 0.1 : 0.06))
-                .cornerRadius(3)
-                .animation(.easeInOut(duration: 0.15), value: isHovered)
-
-            Spacer()
-
-            // Mini memory bar
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.gray.opacity(0.1))
-                    .frame(width: 40, height: 4)
-
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(memoryColor)
-                    .frame(width: min(40, 40 * process.memoryMB / 1000), height: 4)
-            }
-
-            // Memory value
-            Text(formatMemory(process.memoryMB))
-                .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                .foregroundColor(memoryColor)
-                .frame(width: 70, alignment: .trailing)
-
-            // CPU
-            if process.cpu > 0.5 {
-                Text(String(format: "%.1f%%", process.cpu))
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(process.cpu > 50 ? Color(hex: "FF3B30") : .secondary)
-                    .frame(width: 45, alignment: .trailing)
-            } else {
-                Text("—")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary.opacity(0.3))
-                    .frame(width: 45, alignment: .trailing)
-            }
-
-            // Kill button (only show on hover)
-            Button(action: onKill) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 12))
-                    .foregroundColor(.red.opacity(showKill ? 0.8 : 0.3))
-            }
-            .buttonStyle(.plain)
-            .frame(width: 20)
-            .opacity(isHovered ? 1 : 0.3)
-            .onHover { showKill = $0 }
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 5)
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(isHovered ? Color.secondary.opacity(0.06) : Color.clear)
-                .padding(.horizontal, 16)
-        )
-        .scaleEffect(isHovered ? 1.005 : 1.0)
-        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isHovered)
-        .onHover { isHovered = $0 }
-    }
+    @State private var killHovered = false
+    @State private var showDetails = false
 
     var memoryColor: Color {
         if process.memoryMB > 500 { return Color(hex: "FF3B30") }
@@ -1624,11 +1948,165 @@ struct PremiumProcessRow: View {
         return Color(hex: "30D158").opacity(0.8)
     }
 
+    var body: some View {
+        HStack(spacing: 10) {
+            // Process name with ellipsis
+            HStack(spacing: 6) {
+                // Subtle indicator dot
+                Circle()
+                    .fill(memoryColor.opacity(isHovered ? 0.8 : 0.4))
+                    .frame(width: 5, height: 5)
+
+                Text(process.displayName)
+                    .font(.system(size: 12, weight: isHovered ? .medium : .regular, design: .rounded))
+                    .foregroundColor(isHovered ? .primary : .primary.opacity(0.9))
+                    .lineLimit(1)
+            }
+
+            // PID badge with hover effect
+            Text("PID \(process.id)")
+                .font(.system(size: 8, weight: .semibold, design: .monospaced))
+                .foregroundColor(isHovered ? .secondary : .secondary.opacity(0.5))
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+                .background(
+                    Capsule()
+                        .fill(Color.secondary.opacity(isHovered ? 0.12 : 0.06))
+                )
+                .scaleEffect(isHovered ? 1.02 : 1.0)
+
+            Spacer()
+
+            // Premium memory bar with glow
+            ZStack(alignment: .leading) {
+                // Track
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.gray.opacity(0.08))
+                    .frame(width: 44, height: 5)
+
+                // Progress
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(
+                        LinearGradient(
+                            colors: [memoryColor.opacity(0.7), memoryColor],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: min(44, max(4, 44 * process.memoryMB / 1000)), height: 5)
+                    .shadow(color: memoryColor.opacity(isHovered ? 0.5 : 0.2), radius: isHovered ? 3 : 1)
+            }
+
+            // Memory value with animation
+            Text(formatMemory(process.memoryMB))
+                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .foregroundStyle(
+                    process.memoryMB > 500
+                        ? AnyShapeStyle(LinearGradient(colors: [memoryColor, memoryColor.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
+                        : AnyShapeStyle(memoryColor)
+                )
+                .frame(width: 65, alignment: .trailing)
+
+            // CPU with visual feedback
+            HStack(spacing: 3) {
+                if process.cpu > 0.5 {
+                    // Mini CPU activity indicator
+                    if process.cpu > 20 {
+                        CPUActivityIndicator(cpu: process.cpu)
+                    }
+
+                    Text(String(format: "%.1f%%", process.cpu))
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundColor(cpuColor(process.cpu))
+                } else {
+                    Text("—")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary.opacity(0.2))
+                }
+            }
+            .frame(width: 50, alignment: .trailing)
+
+            // Premium kill button
+            Button(action: onKill) {
+                ZStack {
+                    Circle()
+                        .fill(killHovered ? Color.red.opacity(0.12) : Color.clear)
+                        .frame(width: 22, height: 22)
+
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(killHovered ? .red : .red.opacity(isHovered ? 0.5 : 0.2))
+                        .scaleEffect(killHovered ? 1.15 : 1.0)
+                }
+            }
+            .buttonStyle(.plain)
+            .frame(width: 24)
+            .opacity(isHovered ? 1 : 0.4)
+            .onHover { killHovered = $0 }
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: killHovered)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(isHovered ? memoryColor.opacity(0.04) : Color.clear)
+                .padding(.horizontal, 12)
+        )
+        .scaleEffect(isHovered ? 1.003 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isHovered)
+        .onHover { isHovered = $0 }
+    }
+
+    private func cpuColor(_ cpu: Double) -> Color {
+        if cpu > 80 { return Color(hex: "FF3B30") }
+        if cpu > 50 { return Color(hex: "FF9500") }
+        if cpu > 20 { return Color(hex: "FFD60A") }
+        return .secondary
+    }
+
     private func formatMemory(_ mb: Double) -> String {
         if mb >= 1024 {
             return String(format: "%.1f GB", mb / 1024)
         }
         return String(format: "%.0f MB", mb)
+    }
+}
+
+// MARK: - CPU Activity Indicator
+
+struct CPUActivityIndicator: View {
+    let cpu: Double
+
+    @State private var pulse = false
+
+    var body: some View {
+        HStack(spacing: 1) {
+            ForEach(0..<3, id: \.self) { i in
+                RoundedRectangle(cornerRadius: 0.5)
+                    .fill(barColor(for: i))
+                    .frame(width: 2, height: barHeight(for: i))
+                    .animation(
+                        .easeInOut(duration: 0.4)
+                        .repeatForever(autoreverses: true)
+                        .delay(Double(i) * 0.1),
+                        value: pulse
+                    )
+            }
+        }
+        .frame(width: 10, height: 10)
+        .onAppear { pulse = true }
+    }
+
+    private func barHeight(for index: Int) -> CGFloat {
+        let baseHeight: CGFloat = pulse ? 8 : 4
+        let variation = CGFloat(index) * 2
+        return max(3, min(10, baseHeight - variation + CGFloat.random(in: -1...1)))
+    }
+
+    private func barColor(for index: Int) -> Color {
+        if cpu > 80 { return Color(hex: "FF3B30") }
+        if cpu > 50 { return Color(hex: "FF9500") }
+        return Color(hex: "FFD60A")
     }
 }
 
