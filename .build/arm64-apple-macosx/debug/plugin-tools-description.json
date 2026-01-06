@@ -1,0 +1,281 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.MemoryManager-arm64-apple-macosx16.0-debug.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/sources",
+      "importPath" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/Sources/ContentView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryManagerApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryMonitor.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/Sources/MenuBarView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "MemoryManager",
+      "moduleOutputPath" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/Modules/MemoryManager.swiftmodule",
+      "objects" : [
+        "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/ContentView.swift.o",
+        "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryManagerApp.swift.o",
+        "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryMonitor.swift.o",
+        "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MenuBarView.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-enable-batch-mode",
+        "-index-store-path",
+        "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j11",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-module-cache-path",
+        "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "MemoryManager_main",
+        "-swift-version",
+        "5",
+        "-F",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "mac_memory_manager"
+      ],
+      "outputFileMapPath" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/ContentView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryManagerApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryMonitor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MenuBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/Modules/MemoryManager.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/jackfelke/Projects/mac-memory-manager/Sources/ContentView.swift",
+        "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryManagerApp.swift",
+        "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryMonitor.swift",
+        "/Users/jackfelke/Projects/mac-memory-manager/Sources/MenuBarView.swift"
+      ],
+      "tempsPath" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "MemoryManager" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "MemoryManager",
+      "-package-name",
+      "mac_memory_manager",
+      "-incremental",
+      "-c",
+      "/Users/jackfelke/Projects/mac-memory-manager/Sources/ContentView.swift",
+      "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryManagerApp.swift",
+      "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryMonitor.swift",
+      "/Users/jackfelke/Projects/mac-memory-manager/Sources/MenuBarView.swift",
+      "-I",
+      "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-enable-batch-mode",
+      "-index-store-path",
+      "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j11",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-module-cache-path",
+      "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "MemoryManager_main",
+      "-swift-version",
+      "5",
+      "-F",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "mac_memory_manager",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "MemoryManager" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "enableAllTraits" : false
+  },
+  "writeCommands" : {
+    "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager-entitlement.plist"
+    },
+    "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/Sources/ContentView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryManagerApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryMonitor.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/Sources/MenuBarView.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/sources"
+    },
+    "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/ContentView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryManagerApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryMonitor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MenuBarView.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.product/Objects.LinkFileList"
+    },
+    "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+    }
+  }
+}

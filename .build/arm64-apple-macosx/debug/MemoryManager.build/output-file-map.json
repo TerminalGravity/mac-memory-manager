@@ -1,0 +1,29 @@
+{
+  "": {
+    "swift-dependencies": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/master.swiftdeps"
+  },
+  "/Users/jackfelke/Projects/mac-memory-manager/Sources/ContentView.swift": {
+    "dependencies": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/ContentView.d",
+    "object": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/ContentView.swift.o",
+    "swiftmodule": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/ContentView.swiftdeps"
+  },
+  "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryManagerApp.swift": {
+    "dependencies": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryManagerApp.d",
+    "object": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryManagerApp.swift.o",
+    "swiftmodule": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryManagerApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryManagerApp.swiftdeps"
+  },
+  "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryMonitor.swift": {
+    "dependencies": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryMonitor.d",
+    "object": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryMonitor.swift.o",
+    "swiftmodule": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryMonitor~partial.swiftmodule",
+    "swift-dependencies": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MemoryMonitor.swiftdeps"
+  },
+  "/Users/jackfelke/Projects/mac-memory-manager/Sources/MenuBarView.swift": {
+    "dependencies": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MenuBarView.d",
+    "object": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MenuBarView.swift.o",
+    "swiftmodule": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MenuBarView~partial.swiftmodule",
+    "swift-dependencies": "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/debug/MemoryManager.build/MenuBarView.swiftdeps"
+  }
+}

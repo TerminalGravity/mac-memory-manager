@@ -1,0 +1,9 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "0a14c2bf640ef44dba7318577cf929e7055c6bb766a6734b9ba34f922b24732c"
+build_start_time: [1767668298, 826518000]
+build_end_time: [1767668302, 347811000]
+inputs:
+  "/Users/jackfelke/Projects/mac-memory-manager/Sources/ContentView.swift": [1767668096, 378359225]
+  "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryManagerApp.swift": [1767667729, 676422605]
+  "/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryMonitor.swift": [1767668292, 923111240]
+  "/Users/jackfelke/Projects/mac-memory-manager/Sources/MenuBarView.swift": [1767668214, 991625771]

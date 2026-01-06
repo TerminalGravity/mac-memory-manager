@@ -1,0 +1,66 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "MemoryManager-arm64-apple-macosx16.0-release.exe": ["<MemoryManager-arm64-apple-macosx16.0-release.exe>"]
+  "MemoryManager-arm64-apple-macosx16.0-release.module": ["<MemoryManager-arm64-apple-macosx16.0-release.module>"]
+  "PackageStructure": ["<PackageStructure>"]
+  "main": ["<MemoryManager-arm64-apple-macosx16.0-release.exe>","<MemoryManager-arm64-apple-macosx16.0-release.module>"]
+  "test": ["<MemoryManager-arm64-apple-macosx16.0-release.exe>","<MemoryManager-arm64-apple-macosx16.0-release.module>"]
+default: "main"
+nodes:
+  "/Users/jackfelke/Projects/mac-memory-manager/Sources/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/jackfelke/Projects/mac-memory-manager/Sources/ContentView.swift","/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryManagerApp.swift","/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryMonitor.swift","/Users/jackfelke/Projects/mac-memory-manager/Sources/MenuBarView.swift"]
+    outputs: ["/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/sources"]
+    description: "Write auxiliary file /Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/sources"
+
+  "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs: ["<link-file-list>","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/ContentView.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MemoryManagerApp.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MemoryMonitor.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MenuBarView.swift.o"]
+    outputs: ["/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.product/Objects.LinkFileList"]
+    description: "Write auxiliary file /Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.product/Objects.LinkFileList"
+
+  "/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Library/Developer/CommandLineTools/usr/bin/swiftc"]
+    outputs: ["/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+
+  "<MemoryManager-arm64-apple-macosx16.0-release.exe>":
+    tool: phony
+    inputs: ["/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager"]
+    outputs: ["<MemoryManager-arm64-apple-macosx16.0-release.exe>"]
+
+  "<MemoryManager-arm64-apple-macosx16.0-release.module>":
+    tool: phony
+    inputs: ["/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/ContentView.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MemoryManagerApp.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MemoryMonitor.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MenuBarView.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/Modules/MemoryManager.swiftmodule"]
+    outputs: ["<MemoryManager-arm64-apple-macosx16.0-release.module>"]
+
+  "C.MemoryManager-arm64-apple-macosx16.0-release.exe":
+    tool: shell
+    inputs: ["/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/ContentView.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MemoryManagerApp.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MemoryMonitor.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MenuBarView.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.product/Objects.LinkFileList"]
+    outputs: ["/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager"]
+    description: "Linking ./.build/arm64-apple-macosx/release/MemoryManager"
+    args: ["/Library/Developer/CommandLineTools/usr/bin/swiftc","-L","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release","-o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager","-module-name","MemoryManager","-Xlinker","-no_warn_duplicate_libraries","-emit-executable","-Xlinker","-dead_strip","-Xlinker","-alias","-Xlinker","_MemoryManager_main","-Xlinker","_main","-Xlinker","-rpath","-Xlinker","@loader_path","@/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.product/Objects.LinkFileList","-target","arm64-apple-macosx13.0","-F","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-sdk","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-g","-Xlinker","-rpath","-Xlinker","/Library/Developer/CommandLineTools/Library/Developer/Frameworks"]
+
+  "C.MemoryManager-arm64-apple-macosx16.0-release.module":
+    tool: shell
+    inputs: ["/Users/jackfelke/Projects/mac-memory-manager/Sources/ContentView.swift","/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryManagerApp.swift","/Users/jackfelke/Projects/mac-memory-manager/Sources/MemoryMonitor.swift","/Users/jackfelke/Projects/mac-memory-manager/Sources/MenuBarView.swift","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/sources"]
+    outputs: ["/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/ContentView.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MemoryManagerApp.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MemoryMonitor.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/MenuBarView.swift.o","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/Modules/MemoryManager.swiftmodule"]
+    description: "Compiling Swift Module 'MemoryManager' (4 sources)"
+    args: ["/Library/Developer/CommandLineTools/usr/bin/swiftc","-module-name","MemoryManager","-emit-dependencies","-emit-module","-emit-module-path","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/Modules/MemoryManager.swiftmodule","-output-file-map","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/output-file-map.json","-whole-module-optimization","-num-threads","11","-c","@/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/MemoryManager.build/sources","-I","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/Modules","-target","arm64-apple-macosx13.0","-O","-j11","-DSWIFT_PACKAGE","-module-cache-path","/Users/jackfelke/Projects/mac-memory-manager/.build/arm64-apple-macosx/release/ModuleCache","-parseable-output","-Xfrontend","-entry-point-function-name","-Xfrontend","MemoryManager_main","-swift-version","5","-F","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-sdk","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-g","-Xcc","-isysroot","-Xcc","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-Xcc","-fPIC","-Xcc","-g","-package-name","mac_memory_manager"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/jackfelke/Projects/mac-memory-manager/Sources/","/Users/jackfelke/Projects/mac-memory-manager/Package.swift","/Users/jackfelke/Projects/mac-memory-manager/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+
