@@ -83,10 +83,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {}
 }
 
-// MARK: - Custom Status Item View with Ring Indicator
+// MARK: - Custom Status Item View with Premium Ring Indicator
 
 class StatusItemView: NSView {
     weak var monitor: MemoryMonitor?
+    private var glowLayer: CALayer?
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
@@ -94,24 +95,43 @@ class StatusItemView: NSView {
         let percent = monitor?.memoryStats?.usedPercentDouble ?? 0
         let usedPercent = percent
 
-        // Color based on pressure
+        // Premium color palette based on pressure
         let color: NSColor
+        let glowColor: NSColor
         if usedPercent > 85 {
             color = NSColor(red: 1.0, green: 0.23, blue: 0.19, alpha: 1.0) // Red
+            glowColor = NSColor(red: 1.0, green: 0.23, blue: 0.19, alpha: 0.4)
         } else if usedPercent > 70 {
             color = NSColor(red: 1.0, green: 0.58, blue: 0.0, alpha: 1.0) // Orange
+            glowColor = NSColor(red: 1.0, green: 0.58, blue: 0.0, alpha: 0.3)
         } else if usedPercent > 50 {
-            color = NSColor(red: 0.19, green: 0.82, blue: 0.35, alpha: 1.0) // Green
+            color = NSColor(red: 1.0, green: 0.84, blue: 0.04, alpha: 1.0) // Yellow
+            glowColor = NSColor(red: 1.0, green: 0.84, blue: 0.04, alpha: 0.25)
         } else {
             color = NSColor(red: 0.19, green: 0.82, blue: 0.35, alpha: 1.0) // Green
+            glowColor = NSColor(red: 0.19, green: 0.82, blue: 0.35, alpha: 0.2)
         }
 
-        // === Ring Indicator ===
-        let ringCenter = CGPoint(x: 12, y: bounds.midY)
-        let ringRadius: CGFloat = 7
+        // === Premium Ring Indicator ===
+        let ringCenter = CGPoint(x: 13, y: bounds.midY)
+        let ringRadius: CGFloat = 7.5
         let lineWidth: CGFloat = 2.5
 
-        // Background ring
+        // Outer glow (subtle)
+        if usedPercent > 70 {
+            let glowPath = NSBezierPath()
+            glowPath.appendArc(
+                withCenter: ringCenter,
+                radius: ringRadius + 1,
+                startAngle: 0,
+                endAngle: 360
+            )
+            glowColor.setStroke()
+            glowPath.lineWidth = 4
+            glowPath.stroke()
+        }
+
+        // Background ring with depth
         let bgPath = NSBezierPath()
         bgPath.appendArc(
             withCenter: ringCenter,
@@ -119,9 +139,21 @@ class StatusItemView: NSView {
             startAngle: 0,
             endAngle: 360
         )
-        NSColor.gray.withAlphaComponent(0.25).setStroke()
-        bgPath.lineWidth = lineWidth
+        NSColor.gray.withAlphaComponent(0.18).setStroke()
+        bgPath.lineWidth = lineWidth + 0.5
         bgPath.stroke()
+
+        // Inner track
+        let trackPath = NSBezierPath()
+        trackPath.appendArc(
+            withCenter: ringCenter,
+            radius: ringRadius,
+            startAngle: 0,
+            endAngle: 360
+        )
+        NSColor.gray.withAlphaComponent(0.08).setStroke()
+        trackPath.lineWidth = lineWidth
+        trackPath.stroke()
 
         // Progress ring (starts from top, goes clockwise)
         let progress = min(usedPercent / 100.0, 1.0)
@@ -141,19 +173,27 @@ class StatusItemView: NSView {
         color.setStroke()
         progressPath.stroke()
 
-        // === Percentage Text ===
+        // === Premium Percentage Text ===
         let percentInt = Int(usedPercent)
         let text = "\(percentInt)%"
-        let font = NSFont.monospacedSystemFont(ofSize: 11, weight: .semibold)
+        let font = NSFont.monospacedSystemFont(ofSize: 10.5, weight: .bold)
+
+        // Text with subtle shadow effect
+        let shadow = NSShadow()
+        shadow.shadowColor = color.withAlphaComponent(0.3)
+        shadow.shadowOffset = NSSize(width: 0, height: -1)
+        shadow.shadowBlurRadius = 2
+
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
-            .foregroundColor: color
+            .foregroundColor: color,
+            .shadow: shadow
         ]
 
         let textSize = (text as NSString).size(withAttributes: attributes)
         let textRect = CGRect(
-            x: 24,
-            y: (bounds.height - textSize.height) / 2 + 1,
+            x: 25,
+            y: (bounds.height - textSize.height) / 2 + 0.5,
             width: textSize.width,
             height: textSize.height
         )

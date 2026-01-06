@@ -487,6 +487,9 @@ struct PremiumGauge: View {
     let percent: Double
     let pressure: String
 
+    @State private var pulseScale: CGFloat = 1.0
+    @State private var glowOpacity: Double = 0.3
+
     private var gaugeColor: Color {
         if percent > 85 { return Color(hex: "FF3B30") }
         if percent > 70 { return Color(hex: "FF9500") }
@@ -496,9 +499,34 @@ struct PremiumGauge: View {
 
     var body: some View {
         ZStack {
-            // Background ring
+            // Outer glow for high pressure
+            if percent > 70 {
+                Circle()
+                    .fill(gaugeColor.opacity(glowOpacity * 0.4))
+                    .blur(radius: 12)
+                    .scaleEffect(pulseScale)
+                    .onAppear {
+                        withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                            pulseScale = 1.1
+                            glowOpacity = 0.7
+                        }
+                    }
+            }
+
+            // Background ring with inset effect
             Circle()
-                .stroke(Color.primary.opacity(0.08), lineWidth: 8)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.black.opacity(0.1), Color.white.opacity(0.03)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 10
+                )
+
+            // Track
+            Circle()
+                .stroke(Color.primary.opacity(0.06), lineWidth: 8)
 
             // Progress ring with gradient
             Circle()
@@ -506,9 +534,9 @@ struct PremiumGauge: View {
                 .stroke(
                     AngularGradient(
                         colors: [
-                            gaugeColor.opacity(0.6),
+                            gaugeColor.opacity(0.5),
                             gaugeColor,
-                            gaugeColor.opacity(0.8)
+                            gaugeColor.opacity(0.9)
                         ],
                         center: .center,
                         startAngle: .degrees(-90),
@@ -517,17 +545,35 @@ struct PremiumGauge: View {
                     style: StrokeStyle(lineWidth: 8, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .shadow(color: gaugeColor.opacity(0.4), radius: 4)
+                .shadow(color: gaugeColor.opacity(0.5), radius: 6)
+                .animation(.spring(response: 0.8, dampingFraction: 0.7), value: percent)
+
+            // Shimmer effect
+            Circle()
+                .trim(from: max(0, percent / 100 - 0.1), to: percent / 100)
+                .stroke(
+                    Color.white.opacity(0.4),
+                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                .blur(radius: 1)
                 .animation(.spring(response: 0.8, dampingFraction: 0.7), value: percent)
 
             // Center content
             VStack(spacing: -2) {
                 Text("\(Int(percent))")
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundColor(gaugeColor)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [gaugeColor, gaugeColor.opacity(0.8)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .shadow(color: gaugeColor.opacity(0.3), radius: 4, y: 1)
                 Text("%")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(gaugeColor.opacity(0.7))
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(gaugeColor.opacity(0.6))
             }
         }
     }

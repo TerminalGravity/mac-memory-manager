@@ -128,6 +128,161 @@ struct VisualEffectBackground: NSViewRepresentable {
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }
 
+// MARK: - Premium Glass Card (Catalina-style)
+
+struct PremiumGlassCard<Content: View>: View {
+    let content: Content
+    var padding: CGFloat = 20
+    var cornerRadius: CGFloat = 16
+    var shadowOpacity: Double = 0.08
+
+    @State private var isHovered = false
+
+    init(padding: CGFloat = 20, cornerRadius: CGFloat = 16, shadowOpacity: Double = 0.08, @ViewBuilder content: () -> Content) {
+        self.content = content()
+        self.padding = padding
+        self.cornerRadius = cornerRadius
+        self.shadowOpacity = shadowOpacity
+    }
+
+    var body: some View {
+        content
+            .padding(padding)
+            .background(
+                ZStack {
+                    // Base layer with frosted glass effect
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(Color(NSColor.controlBackgroundColor).opacity(0.85))
+
+                    // Inner highlight (top edge glow like macOS windows)
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(isHovered ? 0.25 : 0.15),
+                                    Color.white.opacity(0.05),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 1
+                        )
+
+                    // Outer subtle border
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .strokeBorder(Color.black.opacity(0.06), lineWidth: 0.5)
+                }
+            )
+            .shadow(color: Color.black.opacity(shadowOpacity), radius: 12, x: 0, y: 6)
+            .shadow(color: Color.black.opacity(shadowOpacity * 0.5), radius: 3, x: 0, y: 2)
+            .scaleEffect(isHovered ? 1.002 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isHovered)
+            .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - Premium Section Header
+
+struct PremiumSectionHeader: View {
+    let title: String
+    var icon: String? = nil
+    var iconColor: Color = .secondary
+    var trailing: AnyView? = nil
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if let icon = icon {
+                Image(systemName: icon)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(iconColor)
+            }
+
+            Text(title)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundColor(.secondary)
+                .tracking(1.2)
+
+            Spacer()
+
+            if let trailing = trailing {
+                trailing
+            }
+        }
+    }
+}
+
+// MARK: - Animated Status Dot
+
+struct AnimatedStatusDot: View {
+    let color: Color
+    let isActive: Bool
+
+    @State private var pulseScale: CGFloat = 1.0
+    @State private var glowOpacity: Double = 0.3
+
+    var body: some View {
+        ZStack {
+            // Outer glow (pulsing)
+            Circle()
+                .fill(color.opacity(glowOpacity))
+                .frame(width: 16, height: 16)
+                .scaleEffect(pulseScale)
+                .blur(radius: 2)
+
+            // Inner solid dot
+            Circle()
+                .fill(color)
+                .frame(width: 10, height: 10)
+
+            // Shine highlight
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color.white.opacity(0.4), Color.clear],
+                        center: .topLeading,
+                        startRadius: 0,
+                        endRadius: 5
+                    )
+                )
+                .frame(width: 10, height: 10)
+        }
+        .onAppear {
+            if isActive {
+                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                    pulseScale = 1.3
+                    glowOpacity = 0.6
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Premium Divider
+
+struct PremiumDivider: View {
+    var opacity: Double = 0.12
+    var horizontal: CGFloat = 0
+
+    var body: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color.clear,
+                        Color.primary.opacity(opacity),
+                        Color.primary.opacity(opacity),
+                        Color.clear
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .frame(height: 1)
+            .padding(.horizontal, horizontal)
+    }
+}
+
 // MARK: - Window Draggable Area
 
 struct WindowDraggableArea: NSViewRepresentable {
@@ -261,67 +416,115 @@ struct ContentView: View {
 
     private var headerSection: some View {
         HStack(spacing: 16) {
-            // App Icon with gradient (draggable)
+            // Premium App Icon with gradient (draggable)
             ZStack {
+                // Outer glow
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color(hex: "007AFF").opacity(0.3))
+                    .frame(width: 52, height: 52)
+                    .blur(radius: 8)
+
+                // Icon background
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(DesignSystem.accentGradient)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "007AFF"), Color(hex: "5856D6"), Color(hex: "AF52DE")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .frame(width: 48, height: 48)
-                    .shadow(color: Color.blue.opacity(0.3), radius: 8, y: 4)
+                    .shadow(color: Color(hex: "5856D6").opacity(0.4), radius: 10, y: 5)
+
+                // Inner highlight
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.4), Color.white.opacity(0.1), Color.clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+                    .frame(width: 48, height: 48)
 
                 Image(systemName: "memorychip.fill")
-                    .font(.system(size: 24))
+                    .font(.system(size: 22, weight: .medium))
                     .foregroundColor(.white)
+                    .shadow(color: Color.black.opacity(0.2), radius: 2, y: 1)
             }
             .overlay(WindowDraggableArea())
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 Text("Memory Manager")
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [.primary, .primary.opacity(0.8)],
+                            colors: [.primary, .primary.opacity(0.85)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
 
                 if let machine = monitor.machineInfo {
-                    HStack(spacing: 8) {
-                        Label(machine.modelName, systemImage: "laptopcomputer")
-                        Text("•")
-                            .foregroundColor(.secondary.opacity(0.4))
+                    HStack(spacing: 6) {
+                        Image(systemName: "laptopcomputer")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.secondary.opacity(0.7))
+
+                        Text(machine.modelName)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+
+                        Text("·")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary.opacity(0.3))
+
                         Text(machine.chip)
-                            .fontWeight(.semibold)
-                        Text("•")
-                            .foregroundColor(.secondary.opacity(0.4))
-                        Text("\(machine.memoryGB) GB Unified")
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.secondary.opacity(0.9))
+
+                        Text("·")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary.opacity(0.3))
+
+                        Text("\(machine.memoryGB) GB")
+                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .foregroundColor(.secondary.opacity(0.8))
                     }
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.secondary)
                 }
             }
 
             Spacer()
 
-            // Status Indicator
+            // Premium Status Indicator
             if let stats = monitor.memoryStats {
-                HStack(spacing: 12) {
-                    VStack(alignment: .trailing, spacing: 2) {
+                HStack(spacing: 14) {
+                    VStack(alignment: .trailing, spacing: 3) {
                         Text(stats.pressureLevel)
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
                             .foregroundColor(DesignSystem.pressureColor(for: stats.usedPercent))
 
                         Text("Memory Pressure")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.secondary.opacity(0.7))
                     }
 
-                    Circle()
-                        .fill(DesignSystem.pressureColor(for: stats.usedPercent))
-                        .frame(width: 12, height: 12)
-                        .shadow(color: DesignSystem.pressureColor(for: stats.usedPercent).opacity(0.5), radius: 4)
+                    AnimatedStatusDot(
+                        color: DesignSystem.pressureColor(for: stats.usedPercent),
+                        isActive: stats.usedPercent > 70
+                    )
                 }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(DesignSystem.pressureColor(for: stats.usedPercent).opacity(0.08))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .strokeBorder(DesignSystem.pressureColor(for: stats.usedPercent).opacity(0.15), lineWidth: 1)
+                        )
+                )
             }
 
             // Keyboard shortcuts hint
@@ -330,19 +533,30 @@ struct ContentView: View {
                 KeyboardShortcutHint(key: "⌘K", label: "Cleanup")
                 KeyboardShortcutHint(key: "⌘F", label: "Search")
             }
-            .opacity(0.6)
+            .opacity(0.5)
 
+            // Premium refresh button
             Button(action: { monitor.refresh() }) {
                 ZStack {
                     Circle()
-                        .fill(Color.secondary.opacity(0.1))
-                        .frame(width: 36, height: 36)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.secondary.opacity(0.1), Color.secondary.opacity(0.05)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 38, height: 38)
+
+                    Circle()
+                        .strokeBorder(Color.secondary.opacity(0.1), lineWidth: 1)
+                        .frame(width: 38, height: 38)
 
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.secondary)
                         .rotationEffect(.degrees(monitor.isRefreshing ? 360 : 0))
-                        .animation(monitor.isRefreshing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: monitor.isRefreshing)
+                        .animation(monitor.isRefreshing ? .linear(duration: 0.8).repeatForever(autoreverses: false) : .default, value: monitor.isRefreshing)
                 }
             }
             .buttonStyle(.plain)
@@ -353,100 +567,99 @@ struct ContentView: View {
     // MARK: - Memory Dashboard
 
     private var memoryDashboard: some View {
-        VStack(spacing: 20) {
-            HStack(spacing: 24) {
-                // Large Memory Gauge
-                if let stats = monitor.memoryStats {
-                    PremiumMemoryGauge(stats: stats)
-                        .frame(width: 180, height: 180)
+        PremiumGlassCard(padding: 24, cornerRadius: 20) {
+            VStack(spacing: 24) {
+                HStack(spacing: 28) {
+                    // Large Memory Gauge
+                    if let stats = monitor.memoryStats {
+                        PremiumMemoryGauge(stats: stats)
+                            .frame(width: 190, height: 190)
 
-                    // Memory Breakdown Panel
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("MEMORY COMPOSITION")
-                            .font(.system(size: 11, weight: .semibold, design: .rounded))
-                            .foregroundColor(.secondary)
-                            .tracking(1)
+                        // Memory Breakdown Panel
+                        VStack(alignment: .leading, spacing: 18) {
+                            PremiumSectionHeader(
+                                title: "MEMORY COMPOSITION",
+                                icon: "chart.pie.fill",
+                                iconColor: .secondary.opacity(0.7)
+                            )
 
-                        // Activity Monitor-style breakdown
-                        ActivityMonitorBreakdown(stats: stats)
+                            // Activity Monitor-style breakdown
+                            ActivityMonitorBreakdown(stats: stats)
 
-                        // Swap indicator
-                        if stats.swapUsedMB > 100 {
-                            SwapIndicator(swapMB: stats.swapUsedMB)
+                            // Swap indicator
+                            if stats.swapUsedMB > 100 {
+                                SwapIndicator(swapMB: stats.swapUsedMB)
+                            }
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        // Quick Stats Cards
+                        VStack(spacing: 12) {
+                            QuickStatCard(
+                                title: "Available",
+                                value: formatGB(stats.freeMB + stats.inactiveMB),
+                                subtitle: "Can be freed",
+                                color: DesignSystem.freeColor,
+                                icon: "checkmark.circle.fill"
+                            )
+
+                            QuickStatCard(
+                                title: "App Memory",
+                                value: formatGB(stats.activeMB),
+                                subtitle: "In active use",
+                                color: DesignSystem.appMemoryColor,
+                                icon: "app.fill"
+                            )
+
+                            QuickStatCard(
+                                title: "Compressed",
+                                value: formatGB(stats.compressedMB),
+                                subtitle: "Memory compressor",
+                                color: DesignSystem.compressedColor,
+                                icon: "arrow.down.right.and.arrow.up.left"
+                            )
+                        }
+                        .frame(width: 165)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    // Quick Stats Cards
-                    VStack(spacing: 12) {
-                        QuickStatCard(
-                            title: "Available",
-                            value: formatGB(stats.freeMB + stats.inactiveMB),
-                            subtitle: "Can be freed",
-                            color: DesignSystem.freeColor,
-                            icon: "checkmark.circle.fill"
-                        )
-
-                        QuickStatCard(
-                            title: "App Memory",
-                            value: formatGB(stats.activeMB),
-                            subtitle: "In active use",
-                            color: DesignSystem.appMemoryColor,
-                            icon: "app.fill"
-                        )
-
-                        QuickStatCard(
-                            title: "Compressed",
-                            value: formatGB(stats.compressedMB),
-                            subtitle: "Memory compressor",
-                            color: DesignSystem.compressedColor,
-                            icon: "arrow.down.right.and.arrow.up.left"
-                        )
-                    }
-                    .frame(width: 160)
                 }
-            }
 
-            // Memory History Graph
-            if let stats = monitor.memoryStats {
-                MemoryHistoryGraph(
-                    history: monitor.memoryHistory,
-                    currentPercent: stats.usedPercent
-                )
-            }
+                PremiumDivider(opacity: 0.08)
 
-            // Hero Optimize Memory Button
-            if let stats = monitor.memoryStats {
-                HeroOptimizeButton(
-                    stats: stats,
-                    isOptimizing: isOptimizing,
-                    result: optimizeResult,
-                    onOptimize: {
-                        isOptimizing = true
-                        optimizeResult = nil
-                        Task {
-                            let result = await monitor.smartCleanup()
-                            await MainActor.run {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    optimizeResult = result
-                                    isOptimizing = false
-                                }
-                                // Clear result after 5 seconds
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                                    withAnimation { optimizeResult = nil }
+                // Memory History Graph
+                if let stats = monitor.memoryStats {
+                    MemoryHistoryGraph(
+                        history: monitor.memoryHistory,
+                        currentPercent: stats.usedPercent
+                    )
+                }
+
+                // Hero Optimize Memory Button
+                if let stats = monitor.memoryStats {
+                    HeroOptimizeButton(
+                        stats: stats,
+                        isOptimizing: isOptimizing,
+                        result: optimizeResult,
+                        onOptimize: {
+                            isOptimizing = true
+                            optimizeResult = nil
+                            Task {
+                                let result = await monitor.smartCleanup()
+                                await MainActor.run {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                        optimizeResult = result
+                                        isOptimizing = false
+                                    }
+                                    // Clear result after 5 seconds
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                        withAnimation { optimizeResult = nil }
+                                    }
                                 }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(NSColor.controlBackgroundColor))
-                .shadow(color: Color.black.opacity(0.05), radius: 10, y: 5)
-        )
     }
 
     // MARK: - Recommendations Section
@@ -659,6 +872,8 @@ struct PremiumMemoryGauge: View {
     let stats: MemoryStats
     @State private var animatedPercent: Double = 0
     @State private var pulseOpacity: Double = 0.3
+    @State private var glowScale: CGFloat = 1.0
+    @State private var innerShimmer: Double = 0
 
     var gaugeColor: Color {
         DesignSystem.pressureColor(for: stats.usedPercent)
@@ -666,35 +881,47 @@ struct PremiumMemoryGauge: View {
 
     var body: some View {
         ZStack {
-            // Outer glow ring (pulsing when high)
+            // Outer ambient glow (pulsing when high pressure)
             if stats.usedPercent > 70 {
                 Circle()
-                    .stroke(gaugeColor.opacity(pulseOpacity), lineWidth: 24)
-                    .blur(radius: 8)
+                    .fill(gaugeColor.opacity(pulseOpacity * 0.3))
+                    .blur(radius: 20)
+                    .scaleEffect(glowScale)
                     .onAppear {
-                        withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                            pulseOpacity = 0.6
+                        withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                            pulseOpacity = 0.8
+                            glowScale = 1.08
                         }
                     }
             }
 
-            // Background ring with depth
+            // Background ring with inset depth (Activity Monitor style)
             Circle()
                 .stroke(
                     LinearGradient(
-                        colors: [Color.gray.opacity(0.15), Color.gray.opacity(0.05)],
+                        colors: [
+                            Color.black.opacity(0.12),
+                            Color.black.opacity(0.05),
+                            Color.white.opacity(0.03)
+                        ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 18
+                    lineWidth: 20
                 )
-                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
 
-            // Secondary background track
+            // Inner shadow simulation
             Circle()
-                .stroke(Color.gray.opacity(0.08), lineWidth: 14)
+                .stroke(Color.black.opacity(0.08), lineWidth: 18)
+                .blur(radius: 2)
+                .offset(x: 1, y: 2)
+                .mask(Circle().stroke(lineWidth: 18))
 
-            // Progress ring with angular gradient
+            // Track background
+            Circle()
+                .stroke(Color.gray.opacity(0.1), lineWidth: 16)
+
+            // Progress ring with premium gradient
             Circle()
                 .trim(from: 0, to: animatedPercent / 100)
                 .stroke(
@@ -702,65 +929,96 @@ struct PremiumMemoryGauge: View {
                     style: StrokeStyle(lineWidth: 14, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .shadow(color: gaugeColor.opacity(0.5), radius: 10, x: 0, y: 4)
+                .shadow(color: gaugeColor.opacity(0.6), radius: 12, x: 0, y: 4)
 
-            // Highlight cap at end of progress
+            // Shimmer highlight on progress
             Circle()
-                .trim(from: max(0, animatedPercent / 100 - 0.01), to: animatedPercent / 100)
-                .stroke(Color.white.opacity(0.8), style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                .trim(from: max(0, animatedPercent / 100 - 0.15), to: animatedPercent / 100)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.clear, Color.white.opacity(0.5), Color.clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                )
                 .rotationEffect(.degrees(-90))
                 .blur(radius: 1)
 
-            // Inner frosted circle
+            // End cap glow
+            if animatedPercent > 5 {
+                Circle()
+                    .fill(Color.white.opacity(0.9))
+                    .frame(width: 8, height: 8)
+                    .shadow(color: gaugeColor, radius: 6)
+                    .offset(y: -73)
+                    .rotationEffect(.degrees(-90 + (animatedPercent / 100 * 360)))
+            }
+
+            // Inner glass circle
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [Color.white.opacity(0.08), Color.clear],
+                        colors: [
+                            Color.white.opacity(0.1),
+                            Color.white.opacity(0.03),
+                            Color.clear
+                        ],
                         center: .topLeading,
                         startRadius: 0,
-                        endRadius: 100
+                        endRadius: 80
                     )
                 )
-                .padding(24)
+                .padding(26)
 
             // Inner content
-            VStack(spacing: 2) {
+            VStack(spacing: 0) {
+                // Percentage display
                 HStack(alignment: .firstTextBaseline, spacing: 0) {
                     Text("\(stats.usedPercent)")
-                        .font(.system(size: 52, weight: .bold, design: .rounded))
+                        .font(.system(size: 54, weight: .bold, design: .rounded))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [gaugeColor, gaugeColor.opacity(0.8)],
+                                colors: [gaugeColor, gaugeColor.opacity(0.75)],
                                 startPoint: .top,
                                 endPoint: .bottom
                             )
                         )
+                        .shadow(color: gaugeColor.opacity(0.3), radius: 8, y: 2)
 
                     Text("%")
-                        .font(.system(size: 22, weight: .semibold, design: .rounded))
-                        .foregroundColor(gaugeColor.opacity(0.6))
-                        .offset(y: -8)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(gaugeColor.opacity(0.5))
+                        .offset(y: -10)
                 }
 
-                Text(stats.pressureLevel)
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                // Pressure label with pill background
+                Text(stats.pressureLevel.uppercased())
+                    .font(.system(size: 10, weight: .heavy, design: .rounded))
                     .foregroundColor(gaugeColor)
-                    .textCase(.uppercase)
-                    .tracking(1.5)
-
-                Text("\(String(format: "%.1f", stats.usedMB / 1024)) / \(String(format: "%.0f", stats.totalMB / 1024)) GB")
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundColor(.secondary.opacity(0.8))
+                    .tracking(2)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(gaugeColor.opacity(0.12))
+                    )
                     .padding(.top, 2)
+
+                // Memory details
+                Text("\(String(format: "%.1f", stats.usedMB / 1024)) / \(String(format: "%.0f", stats.totalMB / 1024)) GB")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(.secondary.opacity(0.7))
+                    .padding(.top, 6)
             }
         }
         .onAppear {
-            withAnimation(.spring(response: 1.0, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 1.2, dampingFraction: 0.75)) {
                 animatedPercent = stats.usedPercentDouble
             }
         }
         .onChange(of: stats.usedPercent) { newValue in
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                 animatedPercent = Double(newValue)
             }
         }
@@ -1031,31 +1289,72 @@ struct QuickStatCard: View {
     }
 
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(color)
-                .frame(width: 28, height: 28)
-                .background(color.opacity(isHovered ? 0.25 : 0.15))
-                .cornerRadius(6)
-                .animation(.easeInOut(duration: 0.15), value: isHovered)
+        HStack(spacing: 12) {
+            // Premium icon container
+            ZStack {
+                // Background glow
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(color.opacity(isHovered ? 0.2 : 0.1))
+                    .blur(radius: isHovered ? 4 : 0)
 
-            VStack(alignment: .leading, spacing: 2) {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(
+                        LinearGradient(
+                            colors: [color.opacity(isHovered ? 0.25 : 0.15), color.opacity(isHovered ? 0.15 : 0.08)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 32, height: 32)
+
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(color.opacity(isHovered ? 0.3 : 0.15), lineWidth: 1)
+                    .frame(width: 32, height: 32)
+
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(color)
+            }
+            .frame(width: 32, height: 32)
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isHovered)
+
+            VStack(alignment: .leading, spacing: 3) {
                 Text(value)
-                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundColor(isHovered ? color : .primary)
 
                 Text(title)
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.secondary.opacity(0.8))
             }
+            .animation(.easeInOut(duration: 0.15), value: isHovered)
 
             Spacer()
         }
-        .padding(10)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(NSColor.controlBackgroundColor).opacity(isHovered ? 0.7 : 0.5))
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(NSColor.controlBackgroundColor).opacity(isHovered ? 0.9 : 0.6))
+
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(isHovered ? 0.15 : 0.08),
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            }
         )
+        .shadow(color: Color.black.opacity(isHovered ? 0.08 : 0.04), radius: isHovered ? 8 : 4, y: isHovered ? 4 : 2)
+        .scaleEffect(isHovered ? 1.02 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
         .onHover { isHovered = $0 }
         .help(tooltipText)
     }
