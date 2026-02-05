@@ -2110,6 +2110,308 @@ struct CPUActivityIndicator: View {
     }
 }
 
+// MARK: - Success Checkmark Animation
+
+struct SuccessCheckmark: View {
+    @State private var trimEnd: CGFloat = 0
+    @State private var scale: CGFloat = 0.8
+    @State private var glowOpacity: Double = 0
+
+    var body: some View {
+        ZStack {
+            // Glow
+            Circle()
+                .fill(Color(hex: "34C759").opacity(glowOpacity))
+                .frame(width: 60, height: 60)
+                .blur(radius: 15)
+
+            // Circle background
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "34C759"), Color(hex: "30D158")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 44, height: 44)
+                .shadow(color: Color(hex: "34C759").opacity(0.4), radius: 10, y: 4)
+
+            // Checkmark
+            Path { path in
+                path.move(to: CGPoint(x: 13, y: 22))
+                path.addLine(to: CGPoint(x: 19, y: 28))
+                path.addLine(to: CGPoint(x: 31, y: 16))
+            }
+            .trim(from: 0, to: trimEnd)
+            .stroke(Color.white, style: StrokeStyle(lineWidth: 3.5, lineCap: .round, lineJoin: .round))
+            .frame(width: 44, height: 44)
+        }
+        .scaleEffect(scale)
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                scale = 1.0
+            }
+            withAnimation(.easeOut(duration: 0.4).delay(0.15)) {
+                trimEnd = 1.0
+            }
+            withAnimation(.easeInOut(duration: 0.6)) {
+                glowOpacity = 0.6
+            }
+            // Fade out glow
+            withAnimation(.easeOut(duration: 0.5).delay(0.8)) {
+                glowOpacity = 0.2
+            }
+        }
+    }
+}
+
+// MARK: - Cleanup Success View
+
+struct CleanupSuccessView: View {
+    let freedMB: Double
+    let killedCount: Int
+
+    @State private var showContent = false
+
+    var body: some View {
+        VStack(spacing: 16) {
+            SuccessCheckmark()
+
+            VStack(spacing: 6) {
+                Text("Memory Optimized")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundColor(.primary)
+
+                if freedMB > 0 {
+                    Text("Freed \(formatMemory(freedMB))")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(hex: "34C759"), Color(hex: "30D158")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
+
+                Text("\(killedCount) process\(killedCount == 1 ? "" : "es") cleaned up")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
+            .opacity(showContent ? 1 : 0)
+            .offset(y: showContent ? 0 : 10)
+        }
+        .padding(.vertical, 20)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3)) {
+                showContent = true
+            }
+        }
+    }
+
+    private func formatMemory(_ mb: Double) -> String {
+        if mb >= 1024 {
+            return String(format: "%.1f GB", mb / 1024)
+        }
+        return String(format: "%.0f MB", mb)
+    }
+}
+
+// MARK: - Premium Memory Breakdown Bar
+
+struct PremiumMemoryBreakdownBar: View {
+    let stats: MemoryStats
+
+    @State private var animatedProgress = false
+    @State private var hoveredSegment: MemorySegment? = nil
+
+    enum MemorySegment: String, CaseIterable {
+        case active = "App Memory"
+        case wired = "Wired"
+        case compressed = "Compressed"
+        case inactive = "Cached"
+        case free = "Free"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Stacked bar with animation
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    // Background track
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color(NSColor.separatorColor).opacity(0.15))
+
+                    // Segments
+                    HStack(spacing: 1) {
+                        MemoryBarSegment(
+                            width: animatedProgress ? geo.size.width * CGFloat(stats.activeMB / stats.totalMB) : 0,
+                            color: Color(hex: "FFD60A"),
+                            segment: .active,
+                            isHovered: hoveredSegment == .active,
+                            onHover: { hoveredSegment = $0 ? .active : nil }
+                        )
+
+                        MemoryBarSegment(
+                            width: animatedProgress ? geo.size.width * CGFloat(stats.wiredMB / stats.totalMB) : 0,
+                            color: Color(hex: "FF9F0A"),
+                            segment: .wired,
+                            isHovered: hoveredSegment == .wired,
+                            onHover: { hoveredSegment = $0 ? .wired : nil }
+                        )
+
+                        MemoryBarSegment(
+                            width: animatedProgress ? geo.size.width * CGFloat(stats.compressedMB / stats.totalMB) : 0,
+                            color: Color(hex: "BF5AF2"),
+                            segment: .compressed,
+                            isHovered: hoveredSegment == .compressed,
+                            onHover: { hoveredSegment = $0 ? .compressed : nil }
+                        )
+
+                        MemoryBarSegment(
+                            width: animatedProgress ? geo.size.width * CGFloat(stats.inactiveMB / stats.totalMB) : 0,
+                            color: Color(hex: "64D2FF"),
+                            segment: .inactive,
+                            isHovered: hoveredSegment == .inactive,
+                            onHover: { hoveredSegment = $0 ? .inactive : nil }
+                        )
+
+                        Spacer(minLength: 0)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                .frame(height: 14)
+            }
+            .frame(height: 14)
+
+            // Legend with values
+            HStack(spacing: 0) {
+                PremiumBreakdownLabel(
+                    color: Color(hex: "FFD60A"),
+                    label: "App",
+                    value: formatGB(stats.activeMB),
+                    isHighlighted: hoveredSegment == .active
+                )
+                Spacer()
+                PremiumBreakdownLabel(
+                    color: Color(hex: "FF9F0A"),
+                    label: "Wired",
+                    value: formatGB(stats.wiredMB),
+                    isHighlighted: hoveredSegment == .wired
+                )
+                Spacer()
+                PremiumBreakdownLabel(
+                    color: Color(hex: "BF5AF2"),
+                    label: "Compressed",
+                    value: formatGB(stats.compressedMB),
+                    isHighlighted: hoveredSegment == .compressed
+                )
+                Spacer()
+                PremiumBreakdownLabel(
+                    color: Color(hex: "64D2FF"),
+                    label: "Cached",
+                    value: formatGB(stats.inactiveMB),
+                    isHighlighted: hoveredSegment == .inactive
+                )
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.2)) {
+                animatedProgress = true
+            }
+        }
+    }
+
+    private func formatGB(_ mb: Double) -> String {
+        if mb >= 1024 {
+            return String(format: "%.1f GB", mb / 1024)
+        }
+        return String(format: "%.0f MB", mb)
+    }
+}
+
+// MARK: - Memory Bar Segment
+
+struct MemoryBarSegment: View {
+    let width: CGFloat
+    let color: Color
+    let segment: PremiumMemoryBreakdownBar.MemorySegment
+    let isHovered: Bool
+    let onHover: (Bool) -> Void
+
+    var body: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [color.opacity(0.9), color],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .frame(width: max(0, width))
+            .overlay(
+                // Inner highlight
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.white.opacity(isHovered ? 0.3 : 0.15), Color.clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+            )
+            .scaleEffect(y: isHovered ? 1.15 : 1.0)
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isHovered)
+            .onHover { onHover($0) }
+    }
+}
+
+// MARK: - Premium Breakdown Label
+
+struct PremiumBreakdownLabel: View {
+    let color: Color
+    let label: String
+    let value: String
+    let isHighlighted: Bool
+
+    var body: some View {
+        HStack(spacing: 5) {
+            // Color indicator with glow
+            ZStack {
+                if isHighlighted {
+                    RoundedRectangle(cornerRadius: 2.5)
+                        .fill(color.opacity(0.4))
+                        .frame(width: 12, height: 12)
+                        .blur(radius: 3)
+                }
+
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(color)
+                    .frame(width: 9, height: 9)
+                    .shadow(color: color.opacity(isHighlighted ? 0.5 : 0), radius: 2)
+            }
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(label)
+                    .font(.system(size: 9, weight: isHighlighted ? .semibold : .medium))
+                    .foregroundColor(isHighlighted ? .primary : .secondary)
+
+                Text(value)
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundColor(isHighlighted ? color : .primary.opacity(0.7))
+            }
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(isHighlighted ? color.opacity(0.1) : Color.clear)
+        )
+        .animation(.easeInOut(duration: 0.15), value: isHighlighted)
+    }
+}
+
 // MARK: - Keyboard Shortcut Hint
 
 struct KeyboardShortcutHint: View {
